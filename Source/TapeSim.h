@@ -46,6 +46,32 @@ private:
     float tableDelta = 0.0f;
 };
 
+class Hysteresis
+{
+public:
+    void prepareToPlay (double sampleRate, int oversampling, int samplesPerBlock);
+    void processBlock (juce::dsp::AudioBlock<float>& audioBuffer);
+private:
+    float derivM(float m, float h, float h_1, float dH);
+    int calculateDeltaS(float currentH, float previousH);
+    int calculateDeltaM(float m, float h, int deltaS);
+    float calculateMAn (float h, float m);
+    float langevin(float x);
+    float langevinPrime(float x);
+    
+    float tanh (float x);
+    
+    float saturation = 3.5e5;
+    float anhystericMag = 22;
+    float susceptibilityRatio = 1.7e-1;
+    float coercity = 27.f;
+    float meanField = 1.6e-3;
+    float h_1 = 0;
+    float dH_1 = 0;
+    float m_1 = 0;
+    float period;
+};
+
 class TapeMachine
 {
 public:
@@ -57,4 +83,5 @@ public:
 private:
     RecordHead recHead;
     BiasSignal bias;
+    Hysteresis hysteresis;
 };
