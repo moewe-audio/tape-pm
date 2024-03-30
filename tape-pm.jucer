@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="tWqXzu" name="tape-pm">
     <GROUP id="{BB528576-2627-9459-55AB-70CC9C202B47}" name="Source">
+      <FILE id="TMoZjB" name="TapeSim.cpp" compile="1" resource="0" file="Source/TapeSim.cpp"/>
+      <FILE id="Wcjf2j" name="TapeSim.h" compile="0" resource="0" file="Source/TapeSim.h"/>
       <FILE id="RPQraC" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="Bzh2dr" name="PluginProcessor.h" compile="0" resource="0"
