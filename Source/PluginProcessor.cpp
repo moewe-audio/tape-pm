@@ -19,7 +19,7 @@ TapepmAudioProcessor::TapepmAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ), apvts(*this, nullptr, "PARAMETERS", createParameters())
 #endif
 {
 }
@@ -93,8 +93,14 @@ void TapepmAudioProcessor::changeProgramName (int index, const juce::String& new
 //==============================================================================
 void TapepmAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    oversampling = std::make_unique<juce::dsp::Oversampling<float>>(getTotalNumOutputChannels(),
+                                                                    4,
+                                                                    juce::dsp::Oversampling<float>::filterHalfBandFIREquiripple,
+                                                                    false);
+    oversampling->reset();
+    oversampling->initProcessing(samplesPerBlock);
+    tapeMachine.prepareToPlay(sampleRate, 1 << 4, samplesPerBlock);
+    startTimerHz(10);
 }
 
 void TapepmAudioProcessor::releaseResources()
@@ -137,11 +143,16 @@ void TapepmAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce:
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    juce::dsp::AudioBlock<float> block(buffer);
+    juce::dsp::AudioBlock<float> oversampledBlock = oversampling->processSamplesUp(block);
 
+    
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        tapeMachine.processBlock(buffer);
+        tapeMachine.processBlock(oversampledBlock);
     }
+    oversampling->processSamplesDown(block);
 }
 
 //==============================================================================
@@ -174,4 +185,44 @@ void TapepmAudioProcessor::setStateInformation (const void* data, int sizeInByte
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new TapepmAudioProcessor();
+}
+
+void TapepmAudioProcessor::timerCallback()
+{
+    auto recHeadGapPar = apvts.getRawParameterValue("RECORD_HEAD_GAP");
+    float recHeadGap = recHeadGapPar->load();
+    auto wireTurnsPar = apvts.getRawParameterValue("WIRE_TURNS");
+    float wireTurns = wireTurnsPar->load();
+    auto headEfficiencyPar = apvts.getRawParameterValue("HEAD_EFFICIENCY");
+    float headEfficiency = headEfficiencyPar->load();
+    RecordHead& recordHead = tapeMachine.getRecordHead();
+    recordHead.setGapWidth(recHeadGap);
+    recordHead.setTurnsWire(wireTurns);
+    recordHead.setHeadEfficiency(headEfficiency);
+    
+    auto biasGainPar = apvts.getRawParameterValue("BIAS_GAIN");
+    float biasGain = biasGainPar->load();
+    auto biasFreqPar = apvts.getRawParameterValue("BIAS_FREQ");
+    float biasFreq = biasFreqPar->load();
+    BiasSignal& biasSignal = tapeMachine.getBiasSignal();
+    biasSignal.setGain(biasGain);
+    biasSignal.setBiasFreq(biasFreq);
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout TapepmAudioProcessor::createParameters()
+{
+    std::vector<std::unique_ptr<juce::AudioProcessorParameterGroup>> params;
+
+    auto recordGroup = std::make_unique<juce::AudioProcessorParameterGroup>("RECORD_HEAD", "REC_GROUP", "|");
+    recordGroup->addChild(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "RECORD_HEAD_GAP",  1 }, "Record head gap", 2.5, 12.f, 6.f));
+    recordGroup->addChild(std::make_unique<juce::AudioParameterInt>(juce::ParameterID { "WIRE_TURNS",  1 }, "Turns of wire", 50, 150, 100));
+    recordGroup->addChild(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "HEAD_EFFICIENCY",  1 }, "Head Efficiency", 0.05, 0.15, 0.1));
+    params.push_back(std::move(recordGroup));
+    
+    auto biasGroup = std::make_unique<juce::AudioProcessorParameterGroup>("BIAS", "BIAS_GROUP", "|");
+    biasGroup->addChild(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "BIAS_GAIN",  1 }, "Bias Gain", 0, 8, 5.f));
+    biasGroup->addChild(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "BIAS_FREQ",  1 }, "Bias Freq", 2000.f, 60000.f, 55000.f));
+    params.push_back(std::move(biasGroup));
+    
+    return { params.begin(), params.end() };
 }

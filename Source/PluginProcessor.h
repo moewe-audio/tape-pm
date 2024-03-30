@@ -18,6 +18,7 @@ class TapepmAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
                             #endif
+                            , public juce::Timer
 {
 public:
     //==============================================================================
@@ -57,9 +58,16 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    juce::AudioProcessorValueTreeState& getApvts() { return apvts; };
+    void timerCallback() override;
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TapepmAudioProcessor)
+    
+    juce::AudioProcessorValueTreeState apvts;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
+    
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversampling;
     
     TapeMachine tapeMachine;
 };
