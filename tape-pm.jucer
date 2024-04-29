@@ -4,6 +4,10 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="tWqXzu" name="tape-pm">
     <GROUP id="{BB528576-2627-9459-55AB-70CC9C202B47}" name="Source">
+      <FILE id="R63d8D" name="ModDelay.cpp" compile="1" resource="0" file="Source/ModDelay.cpp"/>
+      <FILE id="SPWtTB" name="ModDelay.h" compile="0" resource="0" file="Source/ModDelay.h"/>
+      <FILE id="bdhCf8" name="Maths.h" compile="0" resource="0" file="Source/Maths.h"/>
+      <FILE id="qRiVEK" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
       <FILE id="TMoZjB" name="TapeSim.cpp" compile="1" resource="0" file="Source/TapeSim.cpp"/>
       <FILE id="Wcjf2j" name="TapeSim.h" compile="0" resource="0" file="Source/TapeSim.h"/>
       <FILE id="RPQraC" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -33,7 +37,7 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="tape-pm"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="tape-pm"/>

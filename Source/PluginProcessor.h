@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "TapeSim.h"
+#include "Parameters.h"
 
 //==============================================================================
 /**
@@ -66,8 +67,6 @@ private:
     
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameters();
-    
-    std::unique_ptr<juce::dsp::Oversampling<float>> oversampling;
     
     TapeMachine tapeMachine;
 };
