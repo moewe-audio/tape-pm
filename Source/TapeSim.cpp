@@ -21,9 +21,10 @@ void TapeMachine::prepareToPlay (double sampleRate, int totalNumOutputChannels, 
                                                                     juce::dsp::Oversampling<float>::filterHalfBandFIREquiripple,
                                                                     false);
     oversampling->reset();
+    int oversampleFactor = 1 << 4;
     oversampling->initProcessing(samplesPerBlock);
-    bias.prepareToPlay(sampleRate, 1 << 4, samplesPerBlock);
-    hysteresis.prepareToPlay(sampleRate, 1 << 4, samplesPerBlock);
+    bias.prepareToPlay(sampleRate, oversampleFactor, samplesPerBlock);
+    hysteresis.prepareToPlay(sampleRate, oversampleFactor, samplesPerBlock);
     lossEffects.prepareToPlay(sampleRate, samplesPerBlock);
     flutter.prepareToPlay(sampleRate, samplesPerBlock);
     juce::dsp::ProcessSpec spec;
@@ -35,11 +36,11 @@ void TapeMachine::prepareToPlay (double sampleRate, int totalNumOutputChannels, 
     hpf.prepare(spec);
     *hpf.state = *filterCoefficients;
     juce::dsp::ProcessSpec spec2;
-    spec2.maximumBlockSize = samplesPerBlock * (1 << 4);
+    spec2.maximumBlockSize = samplesPerBlock * oversampleFactor;
     spec2.numChannels = 1;
-    spec2.sampleRate = sampleRate * (1 << 4);
+    spec2.sampleRate = sampleRate * oversampleFactor;
     lpf.prepare(spec2);
-    lpf.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate * (1 << 4), 20000, 4);
+    lpf.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate * oversampleFactor, 20000, 1);
 }
 
 void TapeMachine::processBlock (juce::dsp::AudioBlock<float>& audioBuffer)

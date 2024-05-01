@@ -48,18 +48,25 @@ TapepmAudioProcessorEditor::TapepmAudioProcessorEditor (TapepmAudioProcessor& p)
     flutterDepthSlider.setName("Flutter Depth");
     flutterDepthSlider.setSliderStyle(juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     
+    for (auto i = 0; i < getNumChildComponents(); i++)
+    {
+        auto* child = getChildComponent(i);
+        if (child == nullptr) {
+            continue;
+        }
+        if (juce::Slider* slider = dynamic_cast<juce::Slider*>(child))
+        {
+            auto label = std::make_unique<juce::Label>();
+            label->setText(slider->getName(), juce::dontSendNotification);
+            label->attachToComponent(slider, true);
+            addAndMakeVisible(label.get());
+            sliderLabels.push_back(std::move(label));
+        }
+    }
+    
     for (auto* child : getChildren())
     {
-        if (child != nullptr) {
-            if (juce::Slider* slider = dynamic_cast<juce::Slider*>(child))
-            {
-                auto label = std::make_unique<juce::Label>();
-                label->setText(slider->getName(), juce::dontSendNotification);
-                label->attachToComponent(slider, true);
-                addAndMakeVisible(label.get());
-                sliderLabels.push_back(std::move(label));
-            }
-        }
+        
     }
     
     juce::AudioProcessorValueTreeState& apvts = audioProcessor.getApvts();
