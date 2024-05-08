@@ -40,7 +40,7 @@ void TapeMachine::prepareToPlay (double sampleRate, int totalNumOutputChannels, 
     spec2.numChannels = 1;
     spec2.sampleRate = sampleRate * oversampleFactor;
     lpf.prepare(spec2);
-    lpf.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate * oversampleFactor, 20000, 1);
+    lpf.coefficients = juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate * oversampleFactor, 24000, 1);
 }
 
 void TapeMachine::processBlock (juce::dsp::AudioBlock<float>& audioBuffer)
@@ -149,9 +149,10 @@ float Hysteresis::derivM(float M, float H, float dH)
     double oneOverQ = (double) 1.0 / Q;
     double oneQSq = oneOverQ * oneOverQ;
     const auto deltaS = (double) ((dH >= 0.0) - (dH < 0.0));
-    double ManMinM = cothQ - oneOverQ;
+    bool isNearZero = abs(Q) <= 10e-4;
+    double ManMinM = !isNearZero ? (cothQ - oneOverQ) : (double)(Q / 3.f);
     const auto deltaM = (double) ((deltaS >= 0.f && ManMinM >= 0.f) || (deltaS < 0.f && ManMinM < 0.f));
-    double LPrimeQ = (oneQSq) - (cothQ * cothQ) + 1.f;
+    double LPrimeQ = !isNearZero ? ((oneQSq) - (cothQ * cothQ) + 1.f) : (double) (1.f / 3.f);
     double cMsOverALPrime = c * Ms / a * LPrimeQ;
     double result = ((1.f - c) * deltaM) * ManMinM;
     result /= ((1.f - c) * deltaS) * k - alpha * ManMinM;
@@ -209,7 +210,7 @@ void LossEffectFilter::calculateCoefficients(int samplesPerBlock)
     float spacing = params.spacingTapeHead * 1.0e-6; // microns to meters
     float thickness = params.tapeThickness * 1.0e-6;
     float gap = params.gapWidth * 1.0e-6;
-    for (int n = 0; n < filterOrder / 2; n++)
+    for (int n = 0; n < filterOrder; n++)
     {
         auto hData = H.data();
         float f = n == 0 ? 20.0 : binWidth * n;
@@ -221,7 +222,6 @@ void LossEffectFilter::calculateCoefficients(int samplesPerBlock)
         float kGapHalf = k * gap * 0.5;
         magnitude *= sin(kGapHalf) / kGapHalf;
         hData[n] = {magnitude, 0};
-        hData[filterOrder - n - 1] = {magnitude, 0};
     }
     timeDomainData.clear();
     timeDomainData = std::vector<std::complex<float>>();

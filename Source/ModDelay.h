@@ -21,7 +21,7 @@ public:
     float getNextSample();
 
 private:
-    double phase = juce::MathConstants<double>::twoPi;
+    double phase = juce::MathConstants<double>::pi;
     double freq = 0.1;
     double samplerate;
     double phaseIncrement;

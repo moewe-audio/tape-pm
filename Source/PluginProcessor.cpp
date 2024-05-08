@@ -231,7 +231,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout TapepmAudioProcessor::create
     params.push_back(std::move(headGroup));
     
     auto biasGroup = std::make_unique<juce::AudioProcessorParameterGroup>("BIAS", "BIAS_GROUP", "|");
-    biasGroup->addChild(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "BIAS_GAIN",  1 }, "Bias Gain", 0, 3.f, 1.f));
+    biasGroup->addChild(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID { "BIAS_GAIN",  1 }, "Bias Gain", 0, 2.f, 1.f));
     params.push_back(std::move(biasGroup));
     
     auto flutterGroup = std::make_unique<juce::AudioProcessorParameterGroup>("FLUTTER", "FLUTTER_GROUP", "|");
